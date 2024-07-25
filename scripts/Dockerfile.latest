@@ -1,0 +1,44 @@
+FROM dmml/conda:ubt20.04-py39
+
+WORKDIR /
+
+RUN apt-get update -q \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        build-essential \
+        git \
+        curl \
+        vim \
+        ca-certificates \
+        unzip \
+        libgl1-mesa-dev \
+        libgl1-mesa-glx \
+        libglew-dev \
+        libosmesa6-dev \
+        libglfw3 \
+        libglfw3-dev \
+        libsdl2-dev \
+        libsdl2-image-dev \
+        libglm-dev \
+        libfreetype6-dev \
+        patchelf \
+        libopenmpi-dev=4.0.3* \
+        openmpi-bin=4.0.3* \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY env_utils.sh .
+COPY requirements.txt .
+COPY mjkey.txt .
+
+# specific mujoco_py parameters (required for discover_mujoco())
+ENV MUJOCO_PY_MJKEY_PATH /opt/mujoco/.mujoco/mjkey.txt
+ENV MUJOCO_PY_MUJOCO_PATH /opt/mujoco/.mujoco/mujoco210
+
+ENV LD_LIBRARY_PATH /opt/mujoco/.mujoco/mujoco210/bin:${LD_LIBRARY_PATH}
+ENV LD_LIBRARY_PATH /usr/local/nvidia/lib64:${LD_LIBRARY_PATH}
+RUN /bin/bash -c "source env_utils.sh; install_mujoco docker; install_requirements mujoco; install_myo; conda clean -ya; rm env_utils.sh; rm requirements.txt; rm mjkey.txt" && \
+    python -c "import mujoco_py; import os; discovered_path = mujoco_py.utils.discover_mujoco(); discovered_path = discovered_path[0] if isinstance(discovered_path, tuple) else discovered_path; print(discovered_path); sim = mujoco_py.MjSim(mujoco_py.load_model_from_path(os.path.join(discovered_path, 'model', 'humanoid.xml'))); print(sim.data.qpos); sim.step(); print(sim.data.qpos);"
+
+WORKDIR /workspace
+RUN chmod -R a+w /workspace && git config --global --add safe.directory /workspace
+
