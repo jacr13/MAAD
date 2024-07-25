@@ -4,7 +4,7 @@ Code for the paper:  [Mimicking Better by Matching the Approximate Action Distri
 
 ## Running Experiments
 
-<details style="border:1px solid #aaa; border-radius: 4px; padding: .5em .5em 0;">
+<details open style="border:1px solid #aaa; border-radius: 4px; padding: .5em .5em 0;">
   <summary style="font-size:20px; font-weight:bold; margin:-.5em -.5em 0; padding:.5em;">
     Trainning a single experiment
   </summary>
